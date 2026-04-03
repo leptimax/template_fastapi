@@ -30,8 +30,6 @@ RUN python3.14 -m pip install --break-system-packages -U pip setuptools wheel Cy
 
 RUN python3.14 -m pip install ./dist/*.whl
 
-COPY ../deployment/entrypoint.sh entrypoint.sh
-
 WORKDIR /usr/app/build-sources
 
 CMD ["python3.14", "server_template/main.py"]

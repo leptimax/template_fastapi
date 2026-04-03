@@ -35,8 +35,6 @@ RUN python3.14 -m pip install --break-system-packages -U pip setuptools wheel Cy
 # Installation de votre package
 RUN python3.14 -m pip install ./dist/*.whl
 
-COPY ../deployment/entrypoint.sh entrypoint.sh
-
 WORKDIR /usr/app/build-sources
 
 # Utilisation de python3.14 pour lancer votre application
