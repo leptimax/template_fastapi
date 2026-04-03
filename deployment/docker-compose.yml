@@ -1,5 +1,5 @@
 services:
-  backend:
+  server_template:
     restart: unless-stopped
     container_name: template_fastapi
     image: template_fastapi
@@ -17,3 +17,76 @@ services:
       API_ENV: ${API_ENV}
       LOGGING_LEVEL: ${LOGGING_LEVEL}
       SERVER_VERSION: ${SERVER_VERSION}
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:v3.11.0
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - 9090:9090
+    networks:
+      - monitoring
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+    depends_on:
+      - server_template
+
+  grafana:
+    image: grafana/grafana:12.4
+    container_name: grafana
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - 13000:3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  loki:
+    image: grafana/loki:3.6.10
+    container_name: loki
+    restart: unless-stopped
+    user: "10001:10001"
+    ports:
+      - 3100:3100
+    volumes:
+      - ./loki/loki.yml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    networks:
+      - monitoring
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:3.6.10
+    container_name: promtail
+    restart: unless-stopped
+    volumes:
+      - ./promtail/promtail.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - monitoring
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+
+networks:
+  monitoring:
+    driver: bridge
