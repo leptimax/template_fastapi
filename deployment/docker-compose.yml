@@ -1,0 +1,19 @@
+services:
+  backend:
+    restart: unless-stopped
+    container_name: template_fastapi
+    image: template_fastapi
+    tty: true
+    build:
+      context: ../
+      dockerfile: ./deployment/docker/Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ../src:/usr/app/build-sources
+    ports:
+      - 8000:8000
+    environment:
+      API_ENV: ${API_ENV}
+      LOGGING_LEVEL: ${LOGGING_LEVEL}
+      SERVER_VERSION: ${SERVER_VERSION}

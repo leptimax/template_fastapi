@@ -1,0 +1,3 @@
+# B301: ignore pickle warning
+# B501: ignore requests with verify=False
+skips: ["B301", "B501", "B104"]

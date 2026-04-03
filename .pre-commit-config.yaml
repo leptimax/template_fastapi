@@ -1,0 +1,54 @@
+repos:
+  - repo: local
+    hooks:
+      - name: isort
+        id: isort
+        entry: isort ./src
+        language: python
+        types: [python]
+      # - id: mypy
+      #   name: mypy
+      #   entry: mypy
+      #   language: python
+      #   types: [python]
+      - id: black
+        args:
+          - --line-length=88
+        name: black
+        entry: black
+        language: python
+        types: [python]
+      - id: ruff
+        name: ruff check
+        entry: bash -c 'PYTHONPATH=src ruff check --fix "$@"' --
+        language: system
+        types: [python]
+        args: [--select, D]
+      - id: ruff-format
+        name: ruff format
+        entry: bash -c 'PYTHONPATH=src ruff format "$@"' --
+        language: system
+        types: [python]
+      # - name: docformatter
+      #   id: docformatter
+      #   entry: docformatter -ri ./src
+      #   language: python
+      #   types: [python]
+      - name: bandit
+        id: bandit
+        args: ["-ll", "-c", ".banditrc"]
+        entry: bandit
+        language: python
+        types: [python]
+      # - name: darglint
+      #   id: darglint
+      #   exclude: ^(.*site-packages|.*dist|.*build|.*\.gradle|.*__pycache__|.*egg-info|.*\.hprof).*$
+      #   entry: darglint .
+      #   language: python
+      #   types: [python]
+      - name: pylint
+        id: pylint
+        entry: env PYTHONPATH=src pylint src
+        args: ["--rcfile=.pylintrc"]
+        language: python
+        types: [python]
