@@ -1,10 +1,12 @@
 """Singleton class module."""
 
+from typing import Any
+
 
 class Singleton(type):
     """The Singleton metaclass."""
 
-    _instances = {}
+    _instances: dict[type, Any] = {}
 
     def __call__(cls, *args, **kwargs):
         """Call method.
