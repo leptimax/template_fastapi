@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from server_template.core.api.routers.routers import router
+from server_template.metrics import prometheus_metrics
 from server_template.models.singleton.constants import Constants
 
 
@@ -23,7 +24,7 @@ class Server:
             version=Constants.SERVER_VERSION,
         )
 
-    def __mount_asset(self):
+    def _mount_asset(self):
         """Mount local assets."""
         self.app.mount(
             "/api/assets",
@@ -31,15 +32,15 @@ class Server:
             name="assets",
         )
 
-    def __mount_metrics(self):
+    def _mount_metrics(self):
         """Mount metrics endpoint."""
         Instrumentator().instrument(self.app).expose(self.app, endpoint="/metrics")
 
-    def __register_router(self):
+    def _register_router(self):
         """Register api router."""
         self.app.include_router(router)
 
-    def __register_middleware(self):
+    def _register_middleware(self):
         """Initialize the API middleware (CORS)."""
         self.app.add_middleware(
             CORSMiddleware,
@@ -51,12 +52,13 @@ class Server:
 
     def run(self):
         """Call all function to initialize server."""
-        self.__register_middleware()
-        self.__mount_asset()
-        self.__mount_metrics()
-        self.__register_router()
+        self._register_middleware()
+        self._mount_asset()
+        self._mount_metrics()
+        self._register_router()
         uvicorn.run(self.app, host="0.0.0.0", port=8000)
 
     def __call__(self):
         """Call method."""
+        prometheus_metrics.set_startup_time()
         self.run()
